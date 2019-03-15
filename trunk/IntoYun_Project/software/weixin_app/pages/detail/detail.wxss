@@ -1,0 +1,78 @@
+page {
+  color: #333;
+  background-color:rgba(94, 165, 28, 0.418);
+}
+
+.connect_box {
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  font-size: 32rpx;
+  color: #666;
+  font-family: "Microsoft YaHei";
+}
+.connect_device_name{
+  float: left;
+  padding-left: 10px;
+  color: #39beff;
+}
+
+.connect_state {
+  float: right;
+  padding-right: 10px;
+  text-decoration: underline;
+  color: #39beff;
+}
+
+.page-section{
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+
+.page-section-title{
+  font-weight: bold;
+  font-size: 30rpx;
+  color: #2f00ff;
+  margin: 2px 1px 3px 1px;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+}
+
+.luxmatchYello_title{
+  font-family: "Microsoft YaHei";
+  font-weight: bold;
+  font-size: 30rpx;
+  color: yellow;
+  margin: 2px 5px 3px 12px;
+}
+
+.luxmatchWhite_title{
+  font-family: "Microsoft YaHei";
+  font-weight: bold;
+  font-size: 30rpx;
+  color: white;
+  margin: 2px 5px 3px 12px;
+}
+
+.sendcmd_btn {
+  font-family: "Microsoft YaHei";
+  font-size: 40rpx;
+  background-color: rgba(195, 196, 187, 0.527);
+  height: 30px;   /* button height */
+  line-height: 10px;
+  margin: 1px 5px 3px 30px;
+  border-radius: 40rpx; 
+}
+
+.sendcmd_btn:active{
+  background-color: rgb(41, 16, 182);
+  color: red;
+}
+
+.slidertype{
+  font-size: 30rpx;
+  margin: 5px 5px 5px 35px;
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  block-size: 6;
+}

@@ -1,0 +1,724 @@
+/**
+  ******************************************************************************
+  *                              (c) Copyright 2018, tangmignfei2013@126.com
+  *                                      All Rights Reserved
+  * @file    util.c
+  * @author  mingfei tang
+  * @version V1.0.0
+  * @date    2018/01/25
+  * @description:
+    This source code and any compilation or derivative thereof is the proprietary
+    information of mingfei.tang and is confidential in nature.
+    Under no circumstances is this software to be combined with any
+    Open Source Software in any way or placed under an Open Source License
+    of any type without the express written permission of mingfei.tang
+  ******************************************************************************
+*/
+#include "stm32f10x.h"
+#include <stdint.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include "Util.h"
+
+static void (*Reset)( void ) = (void (*)(void))0x08000000;
+
+uint16_t crc_16_tab[] = {
+  0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0, 0x0280, 0xc241,
+  0xc601, 0x06c0, 0x0780, 0xc741, 0x0500, 0xc5c1, 0xc481, 0x0440,
+  0xcc01, 0x0cc0, 0x0d80, 0xcd41, 0x0f00, 0xcfc1, 0xce81, 0x0e40,
+  0x0a00, 0xcac1, 0xcb81, 0x0b40, 0xc901, 0x09c0, 0x0880, 0xc841,
+  0xd801, 0x18c0, 0x1980, 0xd941, 0x1b00, 0xdbc1, 0xda81, 0x1a40,
+  0x1e00, 0xdec1, 0xdf81, 0x1f40, 0xdd01, 0x1dc0, 0x1c80, 0xdc41,
+  0x1400, 0xd4c1, 0xd581, 0x1540, 0xd701, 0x17c0, 0x1680, 0xd641,
+  0xd201, 0x12c0, 0x1380, 0xd341, 0x1100, 0xd1c1, 0xd081, 0x1040,
+  0xf001, 0x30c0, 0x3180, 0xf141, 0x3300, 0xf3c1, 0xf281, 0x3240,
+  0x3600, 0xf6c1, 0xf781, 0x3740, 0xf501, 0x35c0, 0x3480, 0xf441,
+  0x3c00, 0xfcc1, 0xfd81, 0x3d40, 0xff01, 0x3fc0, 0x3e80, 0xfe41,
+  0xfa01, 0x3ac0, 0x3b80, 0xfb41, 0x3900, 0xf9c1, 0xf881, 0x3840,
+  0x2800, 0xe8c1, 0xe981, 0x2940, 0xeb01, 0x2bc0, 0x2a80, 0xea41,
+  0xee01, 0x2ec0, 0x2f80, 0xef41, 0x2d00, 0xedc1, 0xec81, 0x2c40,
+  0xe401, 0x24c0, 0x2580, 0xe541, 0x2700, 0xe7c1, 0xe681, 0x2640,
+  0x2200, 0xe2c1, 0xe381, 0x2340, 0xe101, 0x21c0, 0x2080, 0xe041,
+  0xa001, 0x60c0, 0x6180, 0xa141, 0x6300, 0xa3c1, 0xa281, 0x6240,
+  0x6600, 0xa6c1, 0xa781, 0x6740, 0xa501, 0x65c0, 0x6480, 0xa441,
+  0x6c00, 0xacc1, 0xad81, 0x6d40, 0xaf01, 0x6fc0, 0x6e80, 0xae41,
+  0xaa01, 0x6ac0, 0x6b80, 0xab41, 0x6900, 0xa9c1, 0xa881, 0x6840,
+  0x7800, 0xb8c1, 0xb981, 0x7940, 0xbb01, 0x7bc0, 0x7a80, 0xba41,
+  0xbe01, 0x7ec0, 0x7f80, 0xbf41, 0x7d00, 0xbdc1, 0xbc81, 0x7c40,
+  0xb401, 0x74c0, 0x7580, 0xb541, 0x7700, 0xb7c1, 0xb681, 0x7640,
+  0x7200, 0xb2c1, 0xb381, 0x7340, 0xb101, 0x71c0, 0x7080, 0xb041,
+  0x5000, 0x90c1, 0x9181, 0x5140, 0x9301, 0x53c0, 0x5280, 0x9241,
+  0x9601, 0x56c0, 0x5780, 0x9741, 0x5500, 0x95c1, 0x9481, 0x5440,
+  0x9c01, 0x5cc0, 0x5d80, 0x9d41, 0x5f00, 0x9fc1, 0x9e81, 0x5e40,
+  0x5a00, 0x9ac1, 0x9b81, 0x5b40, 0x9901, 0x59c0, 0x5880, 0x9841,
+  0x8801, 0x48c0, 0x4980, 0x8941, 0x4b00, 0x8bc1, 0x8a81, 0x4a40,
+  0x4e00, 0x8ec1, 0x8f81, 0x4f40, 0x8d01, 0x4dc0, 0x4c80, 0x8c41,
+  0x4400, 0x84c1, 0x8581, 0x4540, 0x8701, 0x47c0, 0x4680, 0x8641,
+  0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
+};
+
+
+uint16_t CRC16(uint8_t *buf, unsigned int bsize)
+{
+    uint16_t crc = 0xffff;
+          
+    while (bsize--)
+      crc = (uint16_t)(crc >> 8) ^ crc_16_tab[(crc ^ *buf++) & 0xff];
+          
+    return crc;
+}
+
+void SoftReset( void )
+{
+   __disable_interrupt();
+   Reset();
+}
+
+uint8_t UTL_CalCheckSum8(uint8_t *ptr, uint32_t len)
+{
+	return ~UTL_CheckSum8(ptr, len) + 1;
+}
+
+uint8_t UTL_CheckSum8(uint8_t *ptr, uint32_t len)
+{
+   uint32_t i;
+   uint8_t sum = 0;
+
+   for ( i=0; i<len; i++, ptr++ ) {
+      sum += *(ptr);
+   }
+
+   return sum;
+}
+
+uint32_t UTL_CalCheckSum32(uint8_t *ptr, uint32_t len)
+{
+	return ~UTL_CheckSum32(ptr, len) + 1;
+}
+
+uint32_t UTL_CheckSum32(uint8_t *ptr, uint32_t len)
+{
+   uint32_t i, sum=0;
+
+   for ( i=0; i<len; i++, ptr++ ) {
+      sum += *(ptr);
+   }
+
+   return sum;
+}
+
+static uint8_t u8_CrcHi = 0xFF;
+static uint8_t u8_CrcLo = 0xFF;
+
+/*******************************************************************************
+	名称        	生成多项式              简记式*   标准引用
+   CRC-4       	x4+x+1                  3         ITU G.704
+   CRC-8       	x8+x5+x4+1              0x31
+   CRC-8       	x8+x2+x1+1              0x07
+   CRC-8       	x8+x6+x4+x3+x2+x1       0x5E
+   CRC-12      	x12+x11+x3+x+1          80F
+   CRC-16      	x16+x15+x2+1            8005      IBM SDLC
+   CRC16-CCITT 	x16+x12+x5+1            1021      ISO HDLC, ITU X.25, V.34/V.41/V.42, PPP-FCS
+   CRC-32      	x32+x26+x23+...+x2+x+1 04C11DB7 ZIP, RAR, IEEE 802 LAN/FDDI, IEEE 1394, PPP-FCS
+*******************************************************************************/
+
+/* Table of CRC values for high-order byte */
+//IBM CRC16: X16 + X15 + X2 + 1 余式表
+static const uint8_t u8_CrcTabHi[] = {
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40
+};
+
+/* Table of CRC values for low-order byte */
+static const uint8_t u8_CrcTabLo[] = {
+0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06, 0x07, 0xC7, 0x05, 0xC5, 0xC4, 0x04,
+0xCC, 0x0C, 0x0D, 0xCD, 0x0F, 0xCF, 0xCE, 0x0E, 0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09, 0x08, 0xC8,
+0xD8, 0x18, 0x19, 0xD9, 0x1B, 0xDB, 0xDA, 0x1A, 0x1E, 0xDE, 0xDF, 0x1F, 0xDD, 0x1D, 0x1C, 0xDC,
+0x14, 0xD4, 0xD5, 0x15, 0xD7, 0x17, 0x16, 0xD6, 0xD2, 0x12, 0x13, 0xD3, 0x11, 0xD1, 0xD0, 0x10,
+0xF0, 0x30, 0x31, 0xF1, 0x33, 0xF3, 0xF2, 0x32, 0x36, 0xF6, 0xF7, 0x37, 0xF5, 0x35, 0x34, 0xF4,
+0x3C, 0xFC, 0xFD, 0x3D, 0xFF, 0x3F, 0x3E, 0xFE, 0xFA, 0x3A, 0x3B, 0xFB, 0x39, 0xF9, 0xF8, 0x38,
+0x28, 0xE8, 0xE9, 0x29, 0xEB, 0x2B, 0x2A, 0xEA, 0xEE, 0x2E, 0x2F, 0xEF, 0x2D, 0xED, 0xEC, 0x2C,
+0xE4, 0x24, 0x25, 0xE5, 0x27, 0xE7, 0xE6, 0x26, 0x22, 0xE2, 0xE3, 0x23, 0xE1, 0x21, 0x20, 0xE0,
+0xA0, 0x60, 0x61, 0xA1, 0x63, 0xA3, 0xA2, 0x62, 0x66, 0xA6, 0xA7, 0x67, 0xA5, 0x65, 0x64, 0xA4,
+0x6C, 0xAC, 0xAD, 0x6D, 0xAF, 0x6F, 0x6E, 0xAE, 0xAA, 0x6A, 0x6B, 0xAB, 0x69, 0xA9, 0xA8, 0x68,
+0x78, 0xB8, 0xB9, 0x79, 0xBB, 0x7B, 0x7A, 0xBA, 0xBE, 0x7E, 0x7F, 0xBF, 0x7D, 0xBD, 0xBC, 0x7C,
+0xB4, 0x74, 0x75, 0xB5, 0x77, 0xB7, 0xB6, 0x76, 0x72, 0xB2, 0xB3, 0x73, 0xB1, 0x71, 0x70, 0xB0,
+0x50, 0x90, 0x91, 0x51, 0x93, 0x53, 0x52, 0x92, 0x96, 0x56, 0x57, 0x97, 0x55, 0x95, 0x94, 0x54,
+0x9C, 0x5C, 0x5D, 0x9D, 0x5F, 0x9F, 0x9E, 0x5E, 0x5A, 0x9A, 0x9B, 0x5B, 0x99, 0x59, 0x58, 0x98,
+0x88, 0x48, 0x49, 0x89, 0x4B, 0x8B, 0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
+0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80, 0x40
+};
+
+uint16_t UTL_CalcCrc16( uint8_t u8_data )
+{
+    uint8_t u8_idx;
+
+    u8_idx   = u8_CrcHi ^ u8_data ;
+    u8_CrcHi = u8_CrcLo ^ u8_CrcTabHi[u8_idx] ;
+    u8_CrcLo = u8_CrcTabLo[u8_idx];
+
+    return( 0 );
+}
+
+uint16_t UTL_ChkCrc16( uint8_t* pu8_data, uint16_t u16_len )
+{
+    uint8_t u8_crch = 0xFF;      // initial high
+    uint8_t u8_crcl = 0xFF;      // initial low
+    uint16_t u16_idx;
+
+    while( u16_len-- ) 
+    {       // calcuate CRC
+        u16_idx = u8_crch ^ *pu8_data++;
+        u8_crch = u8_crcl ^ u8_CrcTabHi[u16_idx];
+        u8_crcl = u8_CrcTabLo[u16_idx];
+    }
+    return( (u8_crch << 8) | u8_crcl );
+}
+
+bool UTL_blCheckCRC16(uint8_t *buf, uint16_t bsize)
+{
+    uint16_t crc;
+
+    if(bsize<3)
+    {
+          return false;
+    }
+
+    crc=*(buf+bsize-2)*256+*(buf+bsize-1);
+    if( crc == UTL_ChkCrc16(buf,bsize-2) )
+    {
+          return true;
+    }
+
+    return false;
+}
+
+
+/*ulPolynomial = 0x04c11db7*/
+static const uint32_t u32_CrcTab[256] = {
+0x00000000L, 0x04c11db7L, 0x09823b6eL, 0x0d4326d9L,
+0x130476dcL, 0x17c56b6bL, 0x1a864db2L, 0x1e475005L,
+0x2608edb8L, 0x22c9f00fL, 0x2f8ad6d6L, 0x2b4bcb61L,
+0x350c9b64L, 0x31cd86d3L, 0x3c8ea00aL, 0x384fbdbdL,
+0x4c11db70L, 0x48d0c6c7L, 0x4593e01eL, 0x4152fda9L,
+0x5f15adacL, 0x5bd4b01bL, 0x569796c2L, 0x52568b75L,
+0x6a1936c8L, 0x6ed82b7fL, 0x639b0da6L, 0x675a1011L,
+0x791d4014L, 0x7ddc5da3L, 0x709f7b7aL, 0x745e66cdL,
+0x9823b6e0L, 0x9ce2ab57L, 0x91a18d8eL, 0x95609039L,
+0x8b27c03cL, 0x8fe6dd8bL, 0x82a5fb52L, 0x8664e6e5L,
+0xbe2b5b58L, 0xbaea46efL, 0xb7a96036L, 0xb3687d81L,
+0xad2f2d84L, 0xa9ee3033L, 0xa4ad16eaL, 0xa06c0b5dL,
+0xd4326d90L, 0xd0f37027L, 0xddb056feL, 0xd9714b49L,
+0xc7361b4cL, 0xc3f706fbL, 0xceb42022L, 0xca753d95L,
+0xf23a8028L, 0xf6fb9d9fL, 0xfbb8bb46L, 0xff79a6f1L,
+0xe13ef6f4L, 0xe5ffeb43L, 0xe8bccd9aL, 0xec7dd02dL,
+0x34867077L, 0x30476dc0L, 0x3d044b19L, 0x39c556aeL,
+0x278206abL, 0x23431b1cL, 0x2e003dc5L, 0x2ac12072L,
+0x128e9dcfL, 0x164f8078L, 0x1b0ca6a1L, 0x1fcdbb16L,
+0x018aeb13L, 0x054bf6a4L, 0x0808d07dL, 0x0cc9cdcaL,
+0x7897ab07L, 0x7c56b6b0L, 0x71159069L, 0x75d48ddeL,
+0x6b93dddbL, 0x6f52c06cL, 0x6211e6b5L, 0x66d0fb02L,
+0x5e9f46bfL, 0x5a5e5b08L, 0x571d7dd1L, 0x53dc6066L,
+0x4d9b3063L, 0x495a2dd4L, 0x44190b0dL, 0x40d816baL,
+0xaca5c697L, 0xa864db20L, 0xa527fdf9L, 0xa1e6e04eL,
+0xbfa1b04bL, 0xbb60adfcL, 0xb6238b25L, 0xb2e29692L,
+0x8aad2b2fL, 0x8e6c3698L, 0x832f1041L, 0x87ee0df6L,
+0x99a95df3L, 0x9d684044L, 0x902b669dL, 0x94ea7b2aL,
+0xe0b41de7L, 0xe4750050L, 0xe9362689L, 0xedf73b3eL,
+0xf3b06b3bL, 0xf771768cL, 0xfa325055L, 0xfef34de2L,
+0xc6bcf05fL, 0xc27dede8L, 0xcf3ecb31L, 0xcbffd686L,
+0xd5b88683L, 0xd1799b34L, 0xdc3abdedL, 0xd8fba05aL,
+0x690ce0eeL, 0x6dcdfd59L, 0x608edb80L, 0x644fc637L,
+0x7a089632L, 0x7ec98b85L, 0x738aad5cL, 0x774bb0ebL,
+0x4f040d56L, 0x4bc510e1L, 0x46863638L, 0x42472b8fL,
+0x5c007b8aL, 0x58c1663dL, 0x558240e4L, 0x51435d53L,
+0x251d3b9eL, 0x21dc2629L, 0x2c9f00f0L, 0x285e1d47L,
+0x36194d42L, 0x32d850f5L, 0x3f9b762cL, 0x3b5a6b9bL,
+0x0315d626L, 0x07d4cb91L, 0x0a97ed48L, 0x0e56f0ffL,
+0x1011a0faL, 0x14d0bd4dL, 0x19939b94L, 0x1d528623L,
+0xf12f560eL, 0xf5ee4bb9L, 0xf8ad6d60L, 0xfc6c70d7L,
+0xe22b20d2L, 0xe6ea3d65L, 0xeba91bbcL, 0xef68060bL,
+0xd727bbb6L, 0xd3e6a601L, 0xdea580d8L, 0xda649d6fL,
+0xc423cd6aL, 0xc0e2d0ddL, 0xcda1f604L, 0xc960ebb3L,
+0xbd3e8d7eL, 0xb9ff90c9L, 0xb4bcb610L, 0xb07daba7L,
+0xae3afba2L, 0xaafbe615L, 0xa7b8c0ccL, 0xa379dd7bL,
+0x9b3660c6L, 0x9ff77d71L, 0x92b45ba8L, 0x9675461fL,
+0x8832161aL, 0x8cf30badL, 0x81b02d74L, 0x857130c3L,
+0x5d8a9099L, 0x594b8d2eL, 0x5408abf7L, 0x50c9b640L,
+0x4e8ee645L, 0x4a4ffbf2L, 0x470cdd2bL, 0x43cdc09cL,
+0x7b827d21L, 0x7f436096L, 0x7200464fL, 0x76c15bf8L,
+0x68860bfdL, 0x6c47164aL, 0x61043093L, 0x65c52d24L,
+0x119b4be9L, 0x155a565eL, 0x18197087L, 0x1cd86d30L,
+0x029f3d35L, 0x065e2082L, 0x0b1d065bL, 0x0fdc1becL,
+0x3793a651L, 0x3352bbe6L, 0x3e119d3fL, 0x3ad08088L,
+0x2497d08dL, 0x2056cd3aL, 0x2d15ebe3L, 0x29d4f654L,
+0xc5a92679L, 0xc1683bceL, 0xcc2b1d17L, 0xc8ea00a0L,
+0xd6ad50a5L, 0xd26c4d12L, 0xdf2f6bcbL, 0xdbee767cL,
+0xe3a1cbc1L, 0xe760d676L, 0xea23f0afL, 0xeee2ed18L,
+0xf0a5bd1dL, 0xf464a0aaL, 0xf9278673L, 0xfde69bc4L,
+0x89b8fd09L, 0x8d79e0beL, 0x803ac667L, 0x84fbdbd0L,
+0x9abc8bd5L, 0x9e7d9662L, 0x933eb0bbL, 0x97ffad0cL,
+0xafb010b1L, 0xab710d06L, 0xa6322bdfL, 0xa2f33668L,
+0xbcb4666dL, 0xb8757bdaL, 0xb5365d03L, 0xb1f740b4L
+};
+
+uint32_t UTL_CalcCrc32( uint8_t* pu8_data, uint32_t u32_len )
+{
+   uint32_t u32_crc;
+   uint16_t u16_idx;
+
+   u32_crc = 0xFFFFFFFF;
+   while( u32_len-- ) {
+      u16_idx = (u32_crc >> 24) ^ *pu8_data++;
+      u32_crc = (u32_crc << 8 ) ^ u32_CrcTab[u16_idx];
+   }
+
+   return( u32_crc );
+}
+
+uint32_t UTL_FindRange( uint32_t u32_Num, uint32_t* u32p_Table, uint32_t u32_Len )
+{
+   uint32_t i;
+
+   for ( i=1; i<u32_Len; i++ ) {
+      if ( u32_Num <= u32p_Table[i] )
+         break;
+   }
+   if ( i>=u32_Len ) i = u32_Len - 1;
+   return i;
+}
+
+uint8_t UTL_Byte2Deci( uint8_t byte, uint8_t *buff )
+{
+   uint8_t temp, i=0;
+
+   temp = byte / 100;
+   if ( temp ) *(buff+i++) = temp + '0';
+   byte = byte % 100;
+   temp = byte / 10;
+   if ( i || temp ) *(buff+i++) = temp + '0';
+   temp = byte % 10;
+   *(buff+i++) = temp + '0';
+   *(buff+i) = '\0';
+   return i;
+}
+
+void UTL_Byte2DeciS( uint8_t byte, uint8_t *buff, uint8_t ch )
+{
+   uint8_t temp, i=0, flag=0;
+
+   temp = byte / 100;
+   if ( temp ) {
+      *(buff+i++) = temp + '0';
+      flag = 1;
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+   byte = byte % 100;
+   temp = byte / 10;
+   if ( flag || temp ) {
+      *(buff+i++) = temp + '0';
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+   temp = byte % 10;
+   *(buff+i++) = temp + '0';
+   *(buff+i) = '\0';
+}
+
+uint8_t UTL_Word2Deci( uint16_t word, uint8_t *buff )
+{
+   uint8_t temp, i;
+
+   i = 0;
+   temp = word / 10000;
+   word = word % 10000;
+   if ( temp ) *(buff+i++) = temp + '0';
+
+   temp = word / 1000;
+   word = word % 1000;
+   if ( i || temp ) *(buff+i++) = temp + '0';
+
+   temp = word / 100;
+   word = word % 100;
+   if ( i || temp ) *(buff+i++) = temp + '0';
+
+   temp = word / 10;
+   word = word % 10;
+   if ( i || temp ) *(buff+i++) = temp + '0';
+
+   *(buff+i++) = word + '0';
+   *(buff+i) = '\0';
+   return i;
+}
+
+void UTL_Word2DeciS( uint16_t word, uint8_t *buff, uint8_t ch )
+{
+   uint8_t temp, i, flag = 0;
+
+   i = 0;
+   temp = word / 10000;
+   word = word % 10000;
+   if ( temp ) {
+      *(buff+i++) = temp + '0';
+      flag = 1;
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+
+   temp = word / 1000;
+   word = word % 1000;
+   if ( flag || temp ) {
+      *(buff+i++) = temp + '0';
+      flag = 1;
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+
+   temp = word / 100;
+   word = word % 100;
+   if ( flag || temp ) {
+      *(buff+i++) = temp + '0';
+      flag = 1;
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+
+   temp = word / 10;
+   word = word % 10;
+   if ( flag || temp ) {
+      *(buff+i++) = temp + '0';
+   }
+   else {
+      *(buff+i++) = ch;
+   }
+
+   *(buff+i++) = word + '0';
+   *(buff+i) = '\0';
+}
+
+static uint8_t btoh( uint8_t num )
+{
+   num = num & 0x0F;
+   return( (num < 10 )? (num + '0') : (num - 10 + 'A') );
+}
+
+void UTL_Byte2Hex( uint8_t byte, uint8_t *buff )
+{
+   *buff++ = btoh( byte>>4 );
+   *buff++ = btoh( byte );
+   *buff = '\0';
+}
+
+void UTL_Word2Hex( uint16_t word, uint8_t *buff )
+{
+   *buff++ = btoh( (uint8_t)(word>>12) );
+   *buff++ = btoh( (uint8_t)(word>>8) );
+   *buff++ = btoh( ((uint8_t)word)>>4 );
+   *buff++ = btoh( (uint8_t)(word) );
+   *buff = '\0';
+}
+
+uint8_t UTL_Byte2Bcd( uint8_t byte )
+{
+   return (byte % 10) | ((( byte / 10 ) % 10 )<<4);
+}
+
+uint8_t UTL_Bcd2Byte( uint8_t bcd )
+{
+   return (bcd & 0x0F) + ((( bcd & 0xF0 )>>4) * 10 );
+}
+
+void UTL_Bcd2Ascii( uint8_t bcd, uint8_t *buff )
+{
+   *buff++ = ( bcd>>4 ) + '0';
+   *buff++ = ( bcd &0xF ) + '0';
+   *buff = '\0';
+}
+
+uint16_t UTL_WordDelta( uint16_t v1, uint16_t v2 )
+{
+   return( ( v1>v2 ) ? (v1-v2) : (v2-v1) );
+}
+
+uint8_t UTL_ByteDelta( uint8_t v1, uint8_t v2 )
+{
+   return( ( v1>v2 ) ? (v1-v2) : (v2-v1) );
+}
+
+uint8_t UTL_Word2Float( uint16_t word, uint8_t *buff, uint8_t deci )
+{
+   uint8_t len, i, p;
+
+   len = UTL_Word2Deci( word, buff );
+   if ( deci ) {
+      if ( len==deci ) {
+         for ( i=0; i<=deci; i++ ) {
+            p = len - i;
+            *(buff+p+2) = *(buff+p);
+         }
+         *buff = '0';
+         *(buff+1) = '.';
+         return ( len + 2 );
+      }
+      else if ( len < deci ) {
+         for ( i=0; i<=len; i++ ){
+            p = len - i;
+            *(buff+p+deci) = *(buff+p);
+         }
+         for ( i=(deci - len); i>=1; i-- ){
+            *(buff+i+1) = '0';
+         }
+         *buff = '0';
+         *(buff+1) = '.';
+         return ( deci+2 );
+      }
+      else {
+         for ( i=0; i<=deci; i++ ) {
+            p = len - i;
+            *(buff+p+1) = *(buff+p);
+         }
+         *(buff+len-deci) = '.';
+         return ( len + 1 );
+      }
+   }
+   return len;
+}
+
+uint8_t UTL_Long2Float( uint32_t qbyte, uint8_t *buff, uint8_t deci )
+{
+   uint8_t len, i, p;
+
+   len = UTL_Long2Deci( qbyte, buff, 10 );
+   if ( deci ) {
+      if ( len==deci ) {
+         for ( i=0; i<=deci; i++ ) {
+            p = len - i;
+            *(buff+p+2) = *(buff+p);
+         }
+         *buff = '0';
+         *(buff+1) = '.';
+         return ( len+2 );
+      }
+      else if ( len < deci ) {
+         for ( i=0; i<=len; i++ ){
+            p = len - i;
+            *(buff+p+deci) = *(buff+p);
+         }
+         for ( i=(deci - len); i>=1; i-- ){
+            *(buff+i+1) = '0';
+         }
+         *buff = '0';
+         *(buff+1) = '.';
+         return ( deci+2 );
+      }
+      else {
+         for ( i=0; i<=deci; i++ ) {
+            p = len - i;
+            *(buff+p+1) = *(buff+p);
+         }
+         *(buff+len-deci) = '.';
+         return ( len+1 );
+      }
+   }
+   return len;
+}
+
+uint32_t UTL_StrLen( uint8_t *str )
+{
+   uint32_t u32_i;
+
+   for( u32_i=0; *str++!='\0'; u32_i++ );
+   return( u32_i );
+}
+
+uint32_t UTL_IsBCD( uint8_t *buff, uint32_t len )
+{
+   uint32_t u32_i;
+   uint8_t msb, lsb;
+
+   for( u32_i=0; u32_i<len; u32_i++, buff++ ) {
+      msb = (*buff) >> 4;
+      lsb = (*buff) & 0x0F;
+      if( (msb > 0x09) || (lsb > 0x09) ) {
+         return( 0 );
+      }
+   }
+   return( 1 );
+}
+
+//Vo = ( 10 mV/C * T ) + 600 mV
+//T = 100 * Vo - 60
+int16_t GetTemperatureC( uint16_t raw )
+{
+	int16_t temp;
+	
+	temp = (signed char)( (float)raw * 0.322266 - 60.0 );
+	return( temp );
+}
+
+//摄氏温度转换为华氏温度：F=(9/5)*C+32   ,F为华氏温度
+//华氏温度转换为摄氏温度：C =(5/9)*(F-32)   ,C为摄氏度
+int16_t ConvertTempC2F( int16_t C )
+{
+	int16_t F;
+
+
+	F=(9/5)*C+32;
+	
+	return( F );
+}
+
+void UTL_MemCpy( uint8_t *d, uint8_t *s, uint32_t len )
+{
+   uint32_t i;
+
+   for( i=0; i<len; i++ ) {
+      *d++ = *s++;
+	}
+}
+
+uint8_t UTL_CopyStr2Mem( const uint8_t *s, uint8_t *d )
+{
+	uint16_t u16_i;
+	
+	for( u16_i=0; *s!=0; u16_i++ ) {
+		*d++ = *s++;
+	}
+	return( u16_i );
+}
+
+void StrUpcase( int8_t* s_str, int8_t* d_str )
+{
+	while( *s_str != '\0' ) {
+		if( (*s_str >= 'a') && (*s_str <= 'z') ) {
+			*d_str =  *s_str - 0x20;
+		}
+		else {
+			*d_str = *s_str;
+		}
+		s_str++;
+		d_str++;
+	}
+	*d_str = '\0';
+}
+
+uint16_t StrLen( int8_t* str )
+{
+	uint16_t u16_len;
+	
+	u16_len = 0;
+	while( *str != 0 ) {
+		u16_len++;
+		str++;
+	}
+	
+	return( u16_len );
+}
+
+void* MemCpy( void* pv_dst, const void* pv_src, uint32_t u32_len )
+{
+   uint8_t* pu8_dst;
+   uint8_t* pu8_src;
+   uint32_t u32_i;
+	
+   pu8_dst = (uint8_t*)pv_dst;
+   pu8_src = (uint8_t*)pv_src;
+   for( u32_i=0; u32_i<u32_len; u32_i++ ) 
+   {
+    pu8_dst[u32_i] = pu8_src[u32_i];
+   }
+
+   return( pv_dst );
+}
+
+void MemSet( void* pv_mem, uint8_t u8_data, uint32_t u32_len )
+{
+   uint8_t* pu8_mem;
+	uint32_t u32_i;
+	
+   pu8_mem = (uint8_t*)pv_mem;
+	for( u32_i=0; u32_i<u32_len; u32_i++ ) {
+		pu8_mem[u32_i] = u8_data;
+	}
+}
+
+uint8_t Utils_FileNmChk( uint8_t* str )
+{
+   uint8_t u8_flg;
+
+   u8_flg = 0;
+   while( *str != '\0' ) {
+      if( (*str == 0x5C) || //0x5C: '\'
+          (*str == '/')  ||
+          (*str == ':')  ||
+          (*str == '*')  ||
+          (*str == '?')  ||
+          (*str == '"')  ||
+          (*str == '<')  ||
+          (*str == '>')  ||
+          (*str == '|')  ||
+          (*str <  ' ')  ||
+          (*str > 0x7F) ) {
+         u8_flg = 1;
+         break;
+      }
+      str++;
+   }
+
+   return( u8_flg );
+}
+
+uint16_t Utils_DateNCmp( uint8_t* str1, uint8_t* str2, uint16_t u16_len )
+{
+   uint16_t u16_i;
+
+   for( u16_i=0; u16_i<u16_len; u16_i++ ) {
+      if( *str1++ < *str2++ ) {
+         return( 0 );
+      }
+   }
+
+   return( 1 );
+}
+
+bool Utils_CharArrayCmp( uint8_t* CharArr1, uint8_t* CharArr2, uint16_t u16_len )
+{
+   uint16_t u16_i;
+
+   for( u16_i=0; u16_i<u16_len; u16_i++ ) 
+   {
+      if( *CharArr1++ != *CharArr2++ ) 
+      {
+         return( 0 );
+      }
+   }
+
+   return( 1 );
+}
+
+/* EOF */

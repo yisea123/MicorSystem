@@ -1,0 +1,34 @@
+Cx136800
+AT+JOINAP="changxiao","Cx136800" 
+AT+JOINAP="Honor","12345678" 
+
+Right: 上
+Left: 下
+
+
+项目名称： 畅荔智能家居-系统测试-1
+设备类型
+IntoRobot-W6/W7
+
+设备标识
+0aphh2pjo00000000000076e
+
+设备密钥
+08e0ced6a69c45b9231d94b2b1e34968
+
+产品标识： 
+ac1cf33e0000035e
+
+
+项目名称： 畅荔智能家居-系统测试-2
+设备类型
+IntoRobot-W6/W7
+
+设备标识
+0xdfaygaj00000000000076f
+
+设备密钥
+17c51ddf6bf2bbe7b8bf38ba4332733e
+
+产品标识： 
+c61238c70000035f

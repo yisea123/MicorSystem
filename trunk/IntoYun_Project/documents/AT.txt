@@ -1,0 +1,32 @@
+﻿//AT+RST - 重启模块
+AT+RST
+
+// AT - 测试AT启动
+AT
+
+//AT+JOINAP - 连接AP  
+AT+JOINAP="ChinaNGB-Ydaehu","krqu2868" 
+
+//AT+STATUS - 查询模组网络状态
+AT+STATUS?
+
+//AT+JOIN - 连接或者断开服务器
+AT+JOIN=2
+
+//AT+NETTIME - 获取时间戳
+AT+NETTIME?
+
+//AT+BASICPARAMS - 设置基础参数
+AT+BASICPARAMS=8,"iot.intoyun.com",1883,"www.intoyun.com",80,"www.intoyun.com"
+
+//查询模块信息
+AT+INFO?
+
+//查询设备信息
+AT+DEVICE?
+
+//查询连接
+AT+JOINAP?
+
+//查询工作模式
+AT+MODE?

@@ -1,0 +1,13 @@
+{
+    "pages": [
+        "pages/index/index",
+        "pages/detail/detail"
+    ],
+    "window": {
+        "backgroundTextStyle": "dark",
+        "navigationBarBackgroundColor": "#eee",
+        "navigationBarTitleText": "智能家居系统测试",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#eeeeee"
+    }
+}

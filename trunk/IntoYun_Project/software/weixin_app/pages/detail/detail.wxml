@@ -1,0 +1,65 @@
+<view class="connect_box">
+    <text class='connect_device_name'>{{deviceName}}</text>
+    <text wx:if="{{connect}}" class="connect_state" catchtap="DisConnectTap">已连接</text>
+    <text wx:else class="connect_state">未连接</text>
+</view>
+
+<view class="page-section">
+    <view class="page-section-title">平台控制</view>
+    <view >
+        <button  class="sendcmd_btn" id='send_p_up_cmd'   size="mini" catchtap="SendPingTaiUp">上升</button>
+        <button  class="sendcmd_btn" id='send_p_down_cmd' size="mini" catchtap="SendPingTaiDown">下降</button>
+        <button  class="sendcmd_btn" id='send_p_stop_cmd' size="mini" catchtap="SendPingTaiStop">停止</button>   
+    </view>
+</view>
+
+<view class="page-section">
+      <view class="page-section-title">灯控制</view>
+      <view>
+          <button  class="sendcmd_btn" id='send_l_open_cmd'   size="mini" catchtap="light_Open">开灯</button>
+          <button  class="sendcmd_btn" id='send_l_close_cmd' size="mini" catchtap="light_Close">关灯</button>
+      </view>
+
+      <view>
+          <text  class="luxmatchWhite_title" >白光</text>
+          <slider class="slidertype" activeColor='white' bindchange="sliderwhitechange" value='99' min="0" max="200" show-value/>  
+          <text  class="luxmatchYello_title">黄光</text>
+          <slider class="slidertype" activeColor='yellow' bindchange="slideryellowchange"  value='99' min="0" max="200" show-value/> 
+      </view>    
+</view>
+
+<view class="page-section">
+    <view class="page-section-title">靠背-1控制</view>
+    <view >
+        <button  class="sendcmd_btn" id='send_button_k1_up_cmd'   size="mini" catchtap="SendKaoBei_1Up">上升</button>
+        <button  class="sendcmd_btn" id='send_button_k1_down_cmd' size="mini" catchtap="SendKaoBei_1Down">下降</button>
+        <button  class="sendcmd_btn" id='send_button_k1_stop_cmd' size="mini" catchtap="SendKaoBei_1Stop">停止</button>   
+    </view>
+</view>
+
+<view class="page-section">
+    <view class="page-section-title">靠背-2控制</view>
+    <view >
+        <button  class="sendcmd_btn" id='send_button_k2_up_cmd'   size="mini" catchtap="SendKaoBei_2Up">上升</button>
+        <button  class="sendcmd_btn" id='send_button_k2_down_cmd' size="mini" catchtap="SendKaoBei_2Down">下降</button>
+        <button  class="sendcmd_btn" id='send_button_k2_stop_cmd' size="mini" catchtap="SendKaoBei_2Stop">停止</button>   
+    </view>
+</view>
+
+<view class="page-section">
+    <view class="page-section-title">桌子控制</view>
+    <view >
+        <button  class="sendcmd_btn" id='send_button_d_up_cmd'   size="mini" catchtap="SendDesk_Up">上升</button>
+        <button  class="sendcmd_btn" id='send_button_d_down_cmd' size="mini" catchtap="SendDesk_Down">下降</button>
+        <button  class="sendcmd_btn" id='send_button_d_stop_cmd' size="mini" catchtap="SendDesk_Stop">停止</button>   
+    </view>   
+</view>
+
+<view class="page-section">
+    <view class="page-section-title">楼梯控制</view>
+    <view >
+        <button class="sendcmd_btn"  id='send_button_s_up_cmd'   size="mini" catchtap="SendStair_Up">上升</button>
+        <button class="sendcmd_btn"  id='send_button_s_down_cmd' size="mini" catchtap="SendStair_Down">下降</button>
+        <button class="sendcmd_btn"  id='send_button_s_stop_cmd' size="mini" catchtap="SendStair_Stop">停止</button>   
+    </view> 
+</view>

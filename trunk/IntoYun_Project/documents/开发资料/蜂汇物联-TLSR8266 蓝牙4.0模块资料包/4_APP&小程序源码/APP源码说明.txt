@@ -1,0 +1,2 @@
+1、Android版本的APP源码会与APP持续更新；
+2、iOS版本目前未维护，需要用户自己开发，用户可在APP store 里面下载lightblue进行测试。

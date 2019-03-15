@@ -1,0 +1,22 @@
+[Sfr]
+sfr = "DMA_CCR4",	"Memory",	0x40020044,	4,	base=16,	modified
+sfr = "DMA2_CMAR3",	"Memory",	0x4002043c,	4,	base=16,	modified
+sfr = "RTC_PRLH",	"Memory",	0x40002808,	2,	base=16,	modified
+sfr = "BKP_DR3",	"Memory",	0x40006c0c,	2,	base=16,	modified
+sfr = "BKP_DR12",	"Memory",	0x40006c44,	2,	base=16,	modified
+sfr = "BKP_DR37",	"Memory",	0x40006ca8,	2,	base=16,	modified
+sfr = "IWDG_KR",	"Memory",	0x40003000,	2,	base=16,	modified
+sfr = "TIM8_DMAR",	"Memory",	0x4001344c,	4,	base=16,	modified
+sfr = "TIM2_PSC",	"Memory",	0x40000028,	4,	base=16,	modified
+sfr = "TIM2_DMAR",	"Memory",	0x4000004c,	4,	base=16,	modified
+sfr = "TIM3_CR2",	"Memory",	0x40000404,	4,	base=16,	modified
+sfr = "TIM3_DIER",	"Memory",	0x4000040c,	4,	base=16,	modified
+sfr = "USART2_SR",	"Memory",	0x40004400,	4,	base=16,	modified
+sfr = "UART5_CR1",	"Memory",	0x4000500c,	4,	base=16,	modified
+sfr = "ADC2_SQR2",	"Memory",	0x40012830,	4,	base=16,	modified
+sfr = "ADC3_SQR3",	"Memory",	0x40013c34,	4,	base=16,	modified
+
+
+[SfrGroupInfo]
+group = "Custom", "DMA_CCR4", "DMA2_CMAR3", "RTC_PRLH", "BKP_DR3", "BKP_DR12", "BKP_DR37", "IWDG_KR", "TIM8_DMAR"
+group = "Custom", "TIM2_PSC", "TIM2_DMAR", "TIM3_CR2", "TIM3_DIER", "USART2_SR", "UART5_CR1", "ADC2_SQR2", "ADC3_SQR3"
